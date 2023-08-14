@@ -1,3 +1,13 @@
+# This code is a simple CNN using various well-known tools to improve the generalizability of
+# machine learning models. These include: batch normalization, residual connections, and 
+# global average pooling.
+# Note:
+# - It further includes storing the model and supplemental information per epoch trained
+#   which requires having a directory named model_storage
+# - As a last step it plots the training loss
+# - Realistically speaking we should've also plotted the validation loss, but this is a toy 
+#   project
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
