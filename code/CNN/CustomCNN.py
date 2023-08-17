@@ -17,6 +17,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, random_split
 import matplotlib.pyplot as plt
 from datetime import datetime
+from torch.cuda.amp import GradScaler
 
 BATCH_SIZE = 64
 
@@ -34,15 +35,6 @@ class TestNet(nn.Module):
         self.bn4 = nn.BatchNorm2d(64)
         self.maxpool2 = nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
         self.global_avg_pool = nn.AdaptiveAvgPool2d(output_size=1)
-        # self.classifier = nn.Sequential(
-        #     nn.Linear(in_features=5 * 5 * 64, out_features=120),
-        #     nn.ReLU(),
-        #     nn.Dropout(),
-        #     nn.Linear(in_features=120, out_features=84),
-        #     nn.ReLU(),
-        #     nn.Dropout(),
-        #     nn.Linear(in_features=84, out_features=10)
-        # )
         self.classifier = nn.Sequential(
             nn.Linear(in_features=64, out_features=64),
             nn.ReLU(),
@@ -99,7 +91,7 @@ training_loss = []
 validation_acc = []
 training_acc = []
 mixed_precision = True
-
+scaler = GradScaler()
 start_training_timestamp = datetime.now()
 for epoch in range(num_epochs):
     running_loss = 0
@@ -114,10 +106,11 @@ for epoch in range(num_epochs):
             with torch.autocast(device_type='cuda', dtype=torch.float16):
                 y_pred = model(X)
                 loss = criterion(y_pred, y)
+            scaler.scale(loss).backward()
         else:
             y_pred = model(X)
             loss = criterion(y_pred, y)
-        loss.backward()
+            loss.backward()
         optimizer.step()
         running_loss += loss.item()
         running_sample_counter += X.shape[0]
