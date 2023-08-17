@@ -107,11 +107,13 @@ for epoch in range(num_epochs):
                 y_pred = model(X)
                 loss = criterion(y_pred, y)
             scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
         else:
             y_pred = model(X)
             loss = criterion(y_pred, y)
             loss.backward()
-        optimizer.step()
+            optimizer.step()
         running_loss += loss.item()
         running_sample_counter += X.shape[0]
         running_acc += (y_pred.argmax(1) == y).to(torch.float).sum().item()
